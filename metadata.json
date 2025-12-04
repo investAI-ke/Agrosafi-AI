@@ -1,0 +1,7 @@
+{
+  "name": "Copy of AgroSafi AI",
+  "description": "An agricultural intelligence engine designed to support smallholder farmers in Africa with real-world data, providing accurate, localized, and actionable farm insights through a conversational UI.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
