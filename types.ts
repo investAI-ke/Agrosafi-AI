@@ -31,3 +31,9 @@ export interface Coords {
 }
 
 export type LocationStatus = 'idle' | 'fetching' | 'success' | 'error';
+
+export interface User {
+  email: string;
+}
+
+export type AuthMode = 'signin' | 'signup' | null;

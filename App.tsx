@@ -1,11 +1,15 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Message, Role, Coords, LocationStatus } from './types';
+import { Message, Role, Coords, LocationStatus, User, AuthMode } from './types';
 import { getAgroSafiResponse } from './services/geminiService';
 import ChatHistory from './components/ChatHistory';
 import ChatInput from './components/ChatInput';
 import QuickSuggestions from './components/QuickSuggestions';
 import LocationButton from './components/LocationButton';
+import AuthModal from './components/AuthModal';
+import SignInIcon from './components/icons/SignInIcon';
+import SignUpIcon from './components/icons/SignUpIcon';
+import SignOutIcon from './components/icons/SignOutIcon';
 
 const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -21,6 +25,9 @@ const App: React.FC = () => {
   const [coords, setCoords] = useState<Coords | null>(null);
   const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle');
   const [locationError, setLocationError] = useState<string | null>(null);
+  
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authMode, setAuthMode] = useState<AuthMode>(null);
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
@@ -45,6 +52,21 @@ const App: React.FC = () => {
         setCoords(null);
       }
     );
+  };
+  
+  const handleSignIn = (user: User) => {
+    setCurrentUser(user);
+    setAuthMode(null);
+  };
+
+  const handleSignUp = (user: User) => {
+    // In a real app, this would also create a new user record
+    setCurrentUser(user);
+    setAuthMode(null);
+  };
+
+  const handleSignOut = () => {
+    setCurrentUser(null);
   };
 
   const handleSendMessage = async (promptOverride?: string) => {
@@ -78,9 +100,42 @@ const App: React.FC = () => {
   
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white font-sans">
-      <header className="bg-gray-800 shadow-lg p-4 z-10">
-        <h1 className="text-2xl font-bold text-center text-green-400">🚜 AgroSafi AI</h1>
-        <p className="text-center text-sm text-gray-400">Your Farming Intelligence Partner</p>
+      <header className="bg-gray-800 shadow-lg p-4 z-10 flex justify-between items-center">
+        <div className="text-left">
+          <h1 className="text-2xl font-bold text-green-400">🚜 AgroSafi AI</h1>
+          <p className="text-sm text-gray-400">Your Farming Intelligence Partner</p>
+        </div>
+        <div className="flex items-center gap-2 md:gap-4">
+            {currentUser ? (
+                <>
+                    <span className="hidden md:inline text-gray-300">Welcome, {currentUser.email}!</span>
+                    <button 
+                        onClick={handleSignOut} 
+                        className="flex items-center gap-2 px-3 py-2 bg-red-600/80 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors"
+                    >
+                        <SignOutIcon />
+                        <span className="hidden md:inline">Sign Out</span>
+                    </button>
+                </>
+            ) : (
+                <>
+                    <button 
+                        onClick={() => setAuthMode('signin')}
+                        className="flex items-center gap-2 px-3 py-2 bg-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-600 transition-colors"
+                    >
+                        <SignInIcon />
+                        <span className="hidden md:inline">Sign In</span>
+                    </button>
+                    <button 
+                        onClick={() => setAuthMode('signup')}
+                        className="flex items-center gap-2 px-3 py-2 bg-green-600 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors"
+                    >
+                        <SignUpIcon />
+                        <span className="hidden md:inline">Sign Up</span>
+                    </button>
+                </>
+            )}
+        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto p-4 md:p-6">
@@ -92,6 +147,16 @@ const App: React.FC = () => {
           {error && <p>Chat Error: {error}</p>}
           {locationError && <p>Location Error: {locationError}</p>}
         </div>
+      )}
+      
+      {authMode && (
+        <AuthModal 
+          mode={authMode} 
+          onClose={() => setAuthMode(null)} 
+          onSignIn={handleSignIn}
+          onSignUp={handleSignUp}
+          onSwitchMode={(newMode) => setAuthMode(newMode)}
+        />
       )}
 
       <footer className="p-4 bg-gray-900 sticky bottom-0">
